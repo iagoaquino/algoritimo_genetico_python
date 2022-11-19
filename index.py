@@ -1,6 +1,6 @@
 import random
 matriz_distancia = []
-cidade_1 = [0,4,5,6,1]
+cidade_1 = [8,6,2,9,4]
 cidade_2 = [4,0,5,6,1]
 cidade_3 = [5,5,0,6,1]
 cidade_4 = [6,6,6,0,1]
@@ -10,7 +10,6 @@ matriz_distancia.append(cidade_2)
 matriz_distancia.append(cidade_3)
 matriz_distancia.append(cidade_4)
 matriz_distancia.append(cidade_5)
-print(matriz_distancia[0][1])
 def listar_cidades(tam):
     lista_cidades = []
     for i in range(tam):
@@ -26,11 +25,14 @@ def generate_populacao(quant,tam):
         individuo = []
         for j in range(len(lista_cidades)):
             individuo.append(lista_cidades[j])
-        pos_de_troca_1 = random.randint(individuo[0],len(individuo)) - 1
-        pos_de_troca_2 = random.randint(individuo[0],len(individuo)) - 1
-        auxiliar = individuo[pos_de_troca_2]
-        individuo[pos_de_troca_2] = individuo[pos_de_troca_1]
-        individuo[pos_de_troca_1] = auxiliar
+        k = 0
+        while k <= 7:
+            pos_de_troca_1 = random.randint(0,len(individuo) - 1)
+            pos_de_troca_2 = random.randint(0,len(individuo) - 1)
+            auxiliar = individuo[pos_de_troca_2]
+            individuo[pos_de_troca_2] = individuo[pos_de_troca_1]
+            individuo[pos_de_troca_1] = auxiliar
+            k =  random.randint(1,10)
         populacao.append(individuo)
         individuo.append(individuo[0])
         i+= 1
@@ -60,7 +62,10 @@ def cross_over(individuo_1,individuo_2,tam):
         if filho[i] == -1:
             filho[i] = faltando.pop()
     filho.append(filho[0])
-    print(filho)
+    vai_mutar = random.randint(1,10)
+    if vai_mutar <= 1:
+        filho = aplicar_mutacao(filho)
+    return filho
 
 def aplicar_elitismo(populacao,tam):
     nova_populacao = []
@@ -75,15 +80,42 @@ def aplicar_elitismo(populacao,tam):
                 min_distancia = distancia
                 pos_min = j
 
-        print("adcionado a nova populacao individuo:"+str(pos_min))
-        print(populacao[pos_min])
-        print("com a distancia de :"+str(min_distancia))
         nova_populacao.append(populacao.pop(pos_min))
-    print(nova_populacao)
-            
+    return nova_populacao
+    
+def aplicar_mutacao(individuo):
+    pos_de_troca_1 = random.randint(0,len(individuo) -2)
+    pos_de_troca_2 = random.randint(0,len(individuo) -2)
+    auxiliar = individuo[pos_de_troca_2]
+    individuo[pos_de_troca_2] = individuo[pos_de_troca_1]
+    individuo[pos_de_troca_1] = auxiliar
+    individuo[len(individuo) -1] = individuo[0]
+    return individuo
 
-populacao = []
-populacao = generate_populacao(10,5)
-print(populacao)
-cross_over(populacao[1],populacao[2],5)
-aplicar_elitismo(populacao,5)
+
+def main():
+    populacao = generate_populacao(10,5)
+    valor_geracao = 0
+    contador_repetidos = 0
+    print(populacao)
+    while contador_repetidos != 50:
+        for i in range(int(10/2)):
+            vai_cruzar = random.randint(1,10)
+            if vai_cruzar <= 8:
+                pos_individuo_1 = random.randint(0,len(populacao) -1)
+                pos_individuo_2 = random.randint(0,len(populacao) -1)
+                filho_1 = cross_over(populacao[pos_individuo_1],populacao[pos_individuo_2],5)
+                filho_2 = cross_over(populacao[pos_individuo_2],populacao[pos_individuo_1],5)
+                populacao.append(filho_1)
+                populacao.append(filho_2)
+        populacao = aplicar_elitismo(populacao,10)
+        menor_distancia = 0
+        for i in range(len(populacao[0]) - 1):
+            menor_distancia += matriz_distancia[populacao[0][i] - 1][populacao[0][i+1] - 1]
+        if valor_geracao == menor_distancia:
+            contador_repetidos += 1
+        valor_geracao = menor_distancia
+    print(populacao)
+    print("valor encontrado:"+ str(valor_geracao))
+
+main()
